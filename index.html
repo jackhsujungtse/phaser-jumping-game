@@ -127,7 +127,7 @@ function create() {
     delaycounterText = game.add.text(16, 80, 'Choice: 0', { fontSize: '32px', fill: '#ffffff' });
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-    mouseclick = game.input.onTap.add(onTap, this);;
+    mouseclick = game.input.onTap.add(onTap, this);
     //enemy
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     firedButton = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
@@ -199,6 +199,7 @@ function onTap(pointer, doubleTap) {
         player.body.velocity.y = -250;
     }
 }
+
 function update() {
     //choice randoms between 1~5
     if (game.time.now > counterTime){
@@ -207,6 +208,9 @@ function update() {
         counterTime = game.time.now + 500;
     }
 
+    if (game.input.activePointer.isDown  && player.body.blocked.down ){
+        player.body.velocity.y = -250;
+    }
     //  Scroll the background
     starfield.tilePosition.x -= 2;
 
