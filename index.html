@@ -92,7 +92,7 @@ function create() {
     game.physics.arcade.enable(player);
     //  Player physics properties. Give the little guy a slight bounce.
     player.body.bounce.y = 0.2;
-    player.body.gravity.y = 300;
+    player.body.gravity.y = 500;
     player.body.collideWorldBounds = true;
     //  Our two animations, walking left and right.
     player.animations.add('left', [0, 1, 2, 3], 10, true);
@@ -140,7 +140,7 @@ function collectStars (player, stars) {
     //updating score
     scoreText.text = 'Score: ' + score;
     //for restart
-    if (score == 10){
+    if (score == 100){
         invaders.callAll('kill');
         restartText.text = " You Won, \n Click to restart";
         restartText.visible = true;
@@ -155,7 +155,7 @@ function hitinvader (player, invaders) {
     invaders.kill();
     //  Add and update the score
     // score -= 1;
-    // scoreText.text = 'Score: ' + score;
+    scoreText.text = 'Score: ' + score;
         //When the player dies
         //player.kill();
         stars.callAll('kill');
@@ -170,7 +170,9 @@ function hitinvader (player, invaders) {
 function restart () {
     //hide the restart text
     restartText.visible = false;
-}
+    score = 0;
+    scoreText.text = 'Score: ' + score;
+    }
 
 function resetStar (star, platforms) {
     //  Called if the star hit the platform (left)
