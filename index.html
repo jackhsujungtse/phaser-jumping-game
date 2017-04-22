@@ -34,7 +34,7 @@ function preload() {
 var player;
 var platforms;
 var cursors;
-var mouseclck;
+var mouseclick;
 
 var stars;
 var starTime = 0;
@@ -51,7 +51,6 @@ var invaderTime = 0;
 var choiceText;
 var choice;
 //for timer
-var counter = 0;
 var counterText;
 var delaycounter = 0;
 var delaycounterText;
@@ -63,31 +62,10 @@ var firedButton;
 var counterTime = 0;
 var start;
 
-function collectStars (player, stars) {
-    // Removes the star from the screen
-    stars.kill();
-    //  Add and update the score
-    score += 10;
-    scoreText.text = 'Score: ' + score;
-}
+var restartText;
 
-// function hitinvader (player, invader) {
-//     // Removes the star from the screen
-//     invader.kill();
-//     //  Add and update the score
-//     score -= 1;
-//     scoreText.text = 'Score: ' + score;
-// }
-
-function updateCounter() {
-    counter++;
-    counterText.text = 'Counter: ' + counter;
-}
-
+//    restartText.anchor.setTo(0.5, 0.5); //remember to set anchor for some vars
 function create() {
-    //timer
-    game.time.events.loop(Phaser.Timer.SECOND, updateCounter, this);
-
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -125,9 +103,13 @@ function create() {
     counterText = game.add.text(16, 48, 'Counter: 0', { fontSize: '32px', fill: '#ffffff' });
 
     delaycounterText = game.add.text(16, 80, 'Choice: 0', { fontSize: '32px', fill: '#ffffff' });
+
+    restartText = game.add.text(game.world.centerX , game.world.centerY,'123 ', { font: '84px Arial', fill: '#ffffff' });
+    restartText.anchor.setTo(0.5, 0.5);
+    restartText.visible = false;
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-    mouseclick = game.input.onTap.add(onTap, this);
+    //mouseclick = game.input.onTap.add(tapJump, this);
     //enemy
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     firedButton = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
@@ -146,29 +128,66 @@ function create() {
     invaders.createMultiple(30, 'invader');
     invaders.setAll('anchor.x', 0.5);
     invaders.setAll('anchor.y', 1);
+    // player.setAll('checkWorldBounds', true);
+}
 
-    player.setAll('checkWorldBounds', true);
+
+function collectStars (player, stars) {
+    // Removes the star from the screen
+    stars.kill();
+    //  Add and update the score
+    score += 10;
+    //updating score
+    scoreText.text = 'Score: ' + score;
+    //for restart
+    if (score == 10){
+        invaders.callAll('kill');
+        restartText.text = " You Won, \n Click to restart";
+        restartText.visible = true;
+        //kill all the invaders when winning
+        //the "click to restart"
+        game.input.onTap.addOnce(restart,this);
+    }
+}
+
+function hitinvader (player, invaders) {
+    // Removes the star from the screen
+    invaders.kill();
+    //  Add and update the score
+    // score -= 1;
+    // scoreText.text = 'Score: ' + score;
+        //When the player dies
+        //player.kill();
+        stars.callAll('kill');
+
+        restartText.text=" GAME OVER \n Click to restart";
+        restartText.visible = true;
+
+        //the "click to restart" handler
+        game.input.onTap.addOnce(restart,this);
+}
+
+function restart () {
+    //hide the restart text
+    restartText.visible = false;
 }
 
 function resetStar (star, platforms) {
-    //  Called if the star goes out of the screen
+    //  Called if the star hit the platform (left)
     star.kill();
 }
 
 function resetInvader (invader, platforms) {
-    //  Called if the bullet goes out of the screen
+    //  Called if the invader hit the platform (left)
     invader.kill();
 }
 
-//bullet functions
+//let the invader go functions
 function fireInvader(){
-        if (game.time.now > invaderTime)
-    {
-        //  Grab the first bullet we can from the pool
+        if (game.time.now > invaderTime){
+        //  Grab the first invader we can from the pool
         invader = invaders.getFirstExists(false);
-
-        if (invader)
-        {
+        if (invader){
             //  And fire it
             invader.reset(game.world.width+50, player.y+25);
             invader.body.velocity.x = -400;
@@ -179,24 +198,17 @@ function fireInvader(){
 }
 
 function fireStar(){
-        if (game.time.now > starTime)
-    {
+        if (game.time.now > starTime){
         //  Grab the first star we can from the pool
         star = stars.getFirstExists(false);
 
-        if (star)
-        {
+        if (star){
             //  And fire it
             star.reset(game.world.width+50, player.y+25);
             star.body.velocity.x = -400;
             //in case of firing too many at once
             starTime = game.time.now + 500;
         }
-    }
-}
-function onTap(pointer, doubleTap) {
-    if (player.body.blocked.down){
-        player.body.velocity.y = -250;
     }
 }
 
@@ -208,55 +220,47 @@ function update() {
         counterTime = game.time.now + 500;
     }
 
-    if (game.input.activePointer.isDown  && player.body.blocked.down ){
+    if (game.input.activePointer.isDown  && player.body.blocked.down && restartText.visible == false){
+        player.body.velocity.y = -250;
+    }
+
+    if (fireButton.isDown  && player.body.blocked.down ){
         player.body.velocity.y = -250;
     }
     //  Scroll the background
     starfield.tilePosition.x -= 2;
 
-    //  Reset the players velocity (movement)
-    player.body.velocity.x = 0;
-    //JP changed player running right
+    //JP changed player running right always
     player.animations.play('right');
-
-    //  Allow the player to jump if they are touching the ground.
-    //if (cursors.up.isDown && checkWorldBounds)
-    // if (cursors.up.isDown && player.body.blocked.down )
-    // {
-    //     player.body.velocity.y = -250;
-    // }
-
     
-    //JP allow player to go down faster
+    //JP allow player go down faster
     if (cursors.down.isDown && !(player.body.touching.down))
     {
         player.body.velocity.y += 5;
     }
-
-    //  Collide the player and the stars with the platforms
-    game.physics.arcade.collide(player, platforms);
     
     //  Checks to see if the player overlaps with stars, if he does call the collectStar function
     game.physics.arcade.overlap(player, stars, collectStars, null, this);
     //  Checks to see if the player overlaps with invader, if he does call the hitinvader function
-    //game.physics.arcade.overlap(player, invader, hitinvader, null, this);
+    game.physics.arcade.overlap(player, invaders, hitinvader, null, this);
 
     //if star hits platform, kill it
     game.physics.arcade.overlap(stars, platforms, resetStar, null, this);
 
     game.physics.arcade.overlap(invaders, platforms, resetInvader, null, this);
 
-    if ((choice == 1) || fireButton.isDown)
-    {
-        fireInvader();
+    if ((choice == 1) || fireButton.isDown){
+        if (restartText.visible == false){
+            fireInvader();
+        }
     }
-    if ((choice == 2) || firedButton.isDown)
-    {
-        fireStar();
+    if ((choice == 2) || firedButton.isDown){
+        if (restartText.visible == false){
+            fireStar();
+        }
     }
 
     delaycounterText.text = 'Choice: ' + choice;
-
 }
 
 </script>
