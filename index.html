@@ -14,18 +14,20 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(667, 345, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
     //JP be4 changes
-    game.load.image('sky', 'assets/sky.png');
+    game.load.image('startBG', 'assets/pics/startBG1.png');
+    game.load.image('overBG', 'assets/pics/overBG1.png');
+    game.load.image('winBG', 'assets/pics/winBG1.png');
     game.load.image('wall', 'assets/wall.png');
-    game.load.image('star', 'assets/star.png');
-    game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.image('flower', 'assets/pics/flower1.png');
+    game.load.spritesheet('dude', 'assets/pics/BEE.png', 1, 10);
 
     //JP changed
-    game.load.image('invader', 'assets/invader.png');
-    game.load.image('starfield', 'assets/starfield.png');
+    game.load.image('invader', 'assets/pics/invader1.png');
+    game.load.image('gameBG1', 'assets/pics/gameBG1.png');
 
     //game.load.image('bullet', 'assets/bullet.png');
     game.load.image('ground', 'assets/platform.png');
@@ -39,11 +41,14 @@ var mouseclick;
 var stars;
 var starTime = 0;
 
+var homes;
+var homeTime = 0;
+
 var score = 0;
 var scoreText;
 
 //JP chaged
-var starfield;
+var gameBG1;
 
 var invaders;
 var invaderTime = 0;
@@ -62,20 +67,22 @@ var firedButton;
 //for time
 var counterTime = 0;
 
-//for restart page
-var restartText;
-
-//for starting page
-var startpage;
-var startText
+//for text
+var startText;
+var overText;
+var winText;
+//for BG
+var startBG;
+var overBG;
+var winBG;
 //    restartText.anchor.setTo(0.5, 0.5); //remember to set anchor for some vars
 function create() {
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //  A simple background for our game
-    //  The scrolling starfield background
-    starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
+    //  The scrolling gameBG1 background
+    gameBG1 = game.add.tileSprite(0, 0, 667, 345, 'gameBG1');
 
     //  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = game.add.group();
@@ -103,24 +110,40 @@ function create() {
     //  Our two animations, walking left and right.
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+    //for start page
+    startBG = game.add.tileSprite(0,0, 667, 345, 'startBG');
+    startBG.anchor.setTo(0,0);
+    
+    startBG.visible = true;
+
+    //for start page
+    overBG = game.add.tileSprite(0, 0, 800, 600, 'overBG');
+    overBG.anchor.setTo(0, 0);
+    overBG.visible = false;
+
+    //for start page
+    winBG = game.add.tileSprite(0, 0, 800, 600, 'winBG');
+    winBG.anchor.setTo(0, 0);
+    winBG.visible = false;
+
     //  The text
     scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#ffffff' });
 
-    counterText = game.add.text(16, 48, 'Counter: 0', { fontSize: '32px', fill: '#ffffff' });
+    //counterText = game.add.text(16, 48, 'Counter: 0', { fontSize: '32px', fill: '#ffffff' });
 
-    delaycounterText = game.add.text(16, 80, 'Choice: 0', { fontSize: '32px', fill: '#ffffff' });
+    //delaycounterText = game.add.text(16, 80, 'Choice: 0', { fontSize: '32px', fill: '#ffffff' });
 
-    restartText = game.add.text(game.world.centerX , game.world.centerY,'123 ', { font: '84px Arial', fill: '#ffffff' });
-    restartText.anchor.setTo(0.5, 0.5);
-    restartText.visible = false;
+    overText = game.add.text(game.world.centerX , game.world.centerY,'', { font: '84px Arial', fill: '#ffffff' });
+    overText.anchor.setTo(0.5, 0.5);
+    overText.visible = false;
 
-    //for start page
-    startpage = game.add.tileSprite(0, 0, 800, 600, 'sky');
-    startpage.anchor.setTo(0, 0);
-    startpage.visible = true;
+    winText = game.add.text(game.world.centerX , game.world.centerY,'', { font: '84px Arial', fill: '#ffffff' });
+    winText.anchor.setTo(0.5, 0.5);
+    winText.visible = false;
 
-    startText = game.add.text(game.world.centerX , game.world.centerY,'Click to START ', { font: '84px Arial', fill: '#ffffff' });
-    startText.anchor.setTo(0.5, 0.5);
+    startText = game.add.text(game.world.centerX , game.world.centerY,'Click to START', { font: '84px Arial', fill: '#ffffff' });
+    startText.anchor.setTo(0.5, 0);
     startText.visible = true;
 
     //  Our controls.
@@ -128,15 +151,15 @@ function create() {
     //mouseclick = game.input.onTap.add(tapJump, this);
     //enemy
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    firedButton = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+    firedButton = game.input.keyboard.addKey(Phaser.Keyboard.S);
 
     //  Our star group
     stars = game.add.group();
     stars.enableBody = true;
     stars.physicsBodyType = Phaser.Physics.ARCADE;
-    stars.createMultiple(30, 'star');
+    stars.createMultiple(30, 'flower');
     stars.setAll('anchor.x', 0.5);
-    stars.setAll('anchor.y', 1);
+    stars.setAll('anchor.y', 0.5);
 
     invaders = game.add.group();
     invaders.enableBody = true;
@@ -146,7 +169,7 @@ function create() {
     invaders.setAll('anchor.y', 1);
 
     // player.setAll('checkWorldBounds', true);
-    game.input.onTap.addOnce(startpage,this);
+    game.input.onTap.addOnce(startBG,this);
 }
 
 
@@ -158,10 +181,13 @@ function collectStars (player, stars) {
     //updating score
     scoreText.text = 'Score: ' + score;
     //for restart
-    if (score == 100){
+    if (score == 10){
         invaders.callAll('kill');
-        restartText.text = " You Won, \n Click to restart";
-        restartText.visible = true;
+        winText.text = " You Won, \n Click to restart";
+        winText.visible = true;
+        winBG.visible = true;
+        overBG.visible = false;
+        overText.visible = false;
         //kill all the invaders when winning
         //the "click to restart"
         game.input.onTap.addOnce(restart,this);
@@ -178,11 +204,12 @@ function hitinvader (player, invaders) {
         //player.kill();
         stars.callAll('kill');
 
-        restartText.text=" GAME OVER \n Click to restart";
-        restartText.visible = true;
+        overText.text=" GAME OVER \n Click to restart";
+        overText.visible = true;
+        overBG.visible = true;
 
         //the "click to restart" handler
-        if (restartText.visible){
+        if (overText.visible){
             game.input.onTap.addOnce(restart,this);
         }
 }
@@ -207,7 +234,7 @@ function fireInvader(){
             invader.reset(game.world.width+50, game.world.height-25);
             invader.body.velocity.x = -400;
             //in case of firing too many at once
-            invaderTime = game.time.now + 800;
+            invaderTime = game.time.now + 1000;
         }
     }
 }
@@ -219,23 +246,41 @@ function fireStar(){
 
         if (star){
             //  And fire it
-            star.reset(game.world.width+50, player.y+25);
+            star.reset(game.world.width+50, player.y+50);
             star.body.velocity.x = -400;
             //in case of firing too many at once
-            starTime = game.time.now + 800;
+            starTime = game.time.now + 600;
+        }
+    }
+}
+
+function fireHome(){
+        if (game.time.now > starTime){
+        //  Grab the first star we can from the pool
+        star = stars.getFirstExists(false);
+
+        if (home){
+            //  And fire it
+            home.reset(game.world.width+50, player.y+25);
+            home.body.velocity.x = -400;
+            //in case of firing too many at once
+            homeTime = game.time.now + 600;
         }
     }
 }
 
 function restart () {
     //hide the restart text
-    restartText.visible = false;
+    overText.visible = false;
+    winText.visible = false;
+    overBG.visible = false;
+    winBG.visible = false;
     score = 0;
     scoreText.text = 'Score: ' + score;
     }
 
 function gamestart(){
-    startpage.visible = false;
+    startBG.visible = false;
     startText.visible = false;
 }
 
@@ -244,23 +289,23 @@ function update() {
     if (game.time.now > counterTime){
         choice = Math.floor((Math.random() * 3) + 1); 
         //things comes our every 0.5 sec
-        counterTime = game.time.now + 800;
+        counterTime = game.time.now + 600;
     }
 
-    if (game.input.activePointer.isDown  && player.body.blocked.down && restartText.visible == false && startpage.visible == false){
-        player.body.velocity.y = -400;
+    if (game.input.activePointer.isDown  && player.body.blocked.down && overBG.visible == false && startBG.visible == false && winBG.visible ==false){
+        player.body.velocity.y = -500;
     }
-    else if (game.input.activePointer.isDown  && startpage.visible == true){
+    else if (game.input.activePointer.isDown  && startBG.visible == true){
         gamestart();
     }
 
     //press space to jump
     if (fireButton.isDown  && player.body.blocked.down ){
-        player.body.velocity.y = -400;
+        player.body.velocity.y = -500;
     }
 
     //  Scroll the background
-    starfield.tilePosition.x -= 2;
+    gameBG1.tilePosition.x -= 2;
     //JP changed player running right always
     player.animations.play('right');
     
@@ -281,17 +326,24 @@ function update() {
     game.physics.arcade.overlap(invaders, platforms, resetInvader, null, this);
 
     if ((choice == 1)){
-        if (restartText.visible == false && startpage.visible == false){
+        if (overBG.visible == false && startBG.visible == false && winBG.visible ==false){
             fireInvader();
         }
     }
-    if ((choice == 2) || fireButton.isDown){
-        if (restartText.visible == false && startpage.visible == false){
+    if ((choice == 2) || fireButton.isDown || firedButton.isDown){
+        if (overBG.visible == false && startBG.visible == false && winBG.visible ==false){
             fireStar();
         }
     }
-
-    delaycounterText.text = 'Choice: ' + choice;
+    if (winBG.visible == true){
+        invaders.callAll('kill');
+        stars.callAll('kill');
+    }
+    if (overBG.visible == true){
+        invaders.callAll('kill');
+        stars.callAll('kill');
+    }
+    //delaycounterText.text = 'Choice: ' + choice;
 }
 
 </script>
