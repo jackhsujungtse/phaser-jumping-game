@@ -8,6 +8,23 @@
         body {
             margin: 0;
         }
+         @font-face {
+            font-family: 'CubanoRegular';
+            src: url('fonts/cubano-regular-webfont.eot');
+            src: url('fonts/cubano-regular-webfont.eot?#iefix') format('embedded-opentype'),
+                 url('fonts/cubano-regular-webfont.woff') format('woff'),
+                 url('fonts/cubano-regular-webfont.ttf') format('truetype'),
+                 url('fonts/cubano-regular-webfont.svg#CubanoRegular') format('svg');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'arconregular';
+            src: url('fonts/1/arcon-regular-webfont.woff2') format('woff2'),
+            url('fonts/1/arcon-regular-webfont.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
     </style>
 </head>
 <body>
@@ -24,7 +41,7 @@ function preload() {
     game.load.image('wall', 'assets/wall.png');
     game.load.image('flower', 'assets/pics/flower1.png');
     game.load.image('winHome', 'assets/pics/winHome.png');
-    game.load.spritesheet('dude', 'assets/pics/bFinal.png', 81, 90);
+    game.load.spritesheet('dude', 'assets/pics/bFinal1.png', 80.8, 90);
 
     //JP changed
     game.load.image('invader', 'assets/pics/invader1.png');
@@ -75,6 +92,7 @@ var winText;
 var startBG;
 var overBG;
 var winBG;
+var endScore = 0;
 //    restartText.anchor.setTo(0.5, 0.5); //remember to set anchor for some vars
 function create() {
     //  We're going to be using physics, so enable the Arcade Physics system
@@ -132,24 +150,24 @@ function create() {
     winBG.visible = false;
 
     //  The text
-    scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#ffffff' });
+    scoreText = game.add.text(16, 16, 'Score: 0', { font: '28px CubanoRegular', fill: '#ffd800' });
 
     //counterText = game.add.text(16, 48, 'Counter: 0', { fontSize: '32px', fill: '#ffffff' });
 
     //delaycounterText = game.add.text(16, 80, 'Choice: 0', { fontSize: '32px', fill: '#ffffff' });
 
-    overText = game.add.text(game.world.centerX , game.world.centerY,'', { font: '84px Arial', fill: '#ffffff' });
-    overText.anchor.setTo(0.5, 0.5);
+    overText = game.add.text(game.world.centerX , game.world.centerY,'', { font: '38px arconregular', fill: '#ffffff' });
+    overText.anchor.setTo(-0.8, -2);
     overText.visible = false;
 
-    winText = game.add.text(game.world.centerX , game.world.centerY,'', { font: '84px Arial', fill: '#ffffff' });
-    winText.anchor.setTo(0.5, 0.5);
+    winText = game.add.text(game.world.centerX , game.world.centerY,'', { font: '34px arconregular', fill: '#ffffff' });
+    winText.anchor.setTo(-0.7, -2);
     winText.visible = false;
 
-    startText = game.add.text(game.world.centerX , game.world.centerY,'Click to START', { font: '84px Arial', fill: '#ffffff' });
-    startText.anchor.setTo(0.5, 0);
+    startText = game.add.text(game.world.centerX , game.world.centerY,'PLAY NOW', { font: '34px arconregular', fill: '#ffffff' });
+    startText.anchor.setTo(-0.8, -2);
     startText.visible = true;
-
+    
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     //mouseclick = game.input.onTap.add(tapJump, this);
@@ -171,9 +189,7 @@ function create() {
     invaders.createMultiple(30, 'invader');
     invaders.setAll('anchor.x', 0.5);
     invaders.setAll('anchor.y', 1);
-
     // player.setAll('checkWorldBounds', true);
-    game.input.onTap.addOnce(startBG,this);
 }
 
 
@@ -184,8 +200,11 @@ function collectStars (player, stars) {
     score += 10;
     //updating score
     scoreText.text = 'Score: ' + score;
-    if (score == 30){
-        fireHome();
+    if (score >= 30){
+            endScore = Math.floor((Math.random() * 5)+1); 
+            if(endScore == 1){
+                fireHome();
+            }
     }
 }
 
@@ -199,7 +218,7 @@ function hitinvader (player, invaders) {
         //player.kill();
         stars.callAll('kill');
         home.kill();
-        overText.text=" GAME OVER \n Click to restart";
+        overText.text=" Restart";
         overText.visible = true;
         overBG.visible = true;
 
@@ -211,7 +230,7 @@ function hitinvader (player, invaders) {
 
 function hitHome (player, home) {
     home.kill();
-    winText.text = " You Won, \n Click to restart";
+    winText.text = " Play Again";
     winText.visible = true;
     winBG.visible = true;
     overBG.visible = false;
@@ -242,7 +261,7 @@ function fireInvader(){
             invader.reset(game.world.width+50, game.world.height-5);
             invader.body.velocity.x = -400;
             //in case of firing too many at once
-            invaderTime = game.time.now + 1100;
+            invaderTime = game.time.now + 1200;
         }
     }
 }
@@ -306,7 +325,6 @@ function update() {
     else if (game.input.activePointer.isDown  && startBG.visible == true){
         gamestart();
     }
-
     //press space to jump
     if (fireButton.isDown  && player.body.blocked.down ){
         player.body.velocity.y = -500;
