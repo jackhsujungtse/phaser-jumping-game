@@ -23,11 +23,12 @@ function preload() {
     game.load.image('winBG', 'assets/pics/winBG1.png');
     game.load.image('wall', 'assets/wall.png');
     game.load.image('flower', 'assets/pics/flower1.png');
-    game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.image('winHome', 'assets/pics/winHome.png');
+    game.load.spritesheet('dude', 'assets/pics/bFinal.png', 81, 90);
 
     //JP changed
     game.load.image('invader', 'assets/pics/invader1.png');
-    game.load.image('gameBG1', 'assets/pics/gameBG1.png');
+    game.load.image('gameBG', 'assets/pics/gameBG1.png');
 
     //game.load.image('bullet', 'assets/bullet.png');
     game.load.image('ground', 'assets/platform.png');
@@ -41,14 +42,13 @@ var mouseclick;
 var stars;
 var starTime = 0;
 
-var homes;
-var homeTime = 0;
+var home;
 
 var score = 0;
 var scoreText;
 
 //JP chaged
-var gameBG1;
+var gameBG;
 
 var invaders;
 var invaderTime = 0;
@@ -82,7 +82,7 @@ function create() {
 
     //  A simple background for our game
     //  The scrolling gameBG1 background
-    gameBG1 = game.add.tileSprite(0, 0, 667, 345, 'gameBG1');
+    gameBG = game.add.tileSprite(0, 0, 667, 345, 'gameBG');
 
     //  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = game.add.group();
@@ -100,7 +100,7 @@ function create() {
     // The player and its settings
     player = game.add.sprite(32, game.world.height - 120, 'dude');
     //scale the player 2 times bigger
-    player.scale.setTo(2,2);
+    player.scale.setTo(1,1);
     //  We need to enable physics on the player
     game.physics.arcade.enable(player);
     //  Player physics properties. Give the little guy a slight bounce.
@@ -108,8 +108,12 @@ function create() {
     player.body.gravity.y = 800;
     player.body.collideWorldBounds = true;
     //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    player.animations.add('right', [0, 1, 2, 3, 4, 5, 6], 10, true);
+
+    //winHome
+    home = game.add.sprite(game.world.width+50, game.world.height - 240, 'winHome');
+    home.scale.setTo(2,2);
+    game.physics.arcade.enable(home,Phaser.Physics.ARCADE);
 
     //for start page
     startBG = game.add.tileSprite(0,0, 667, 345, 'startBG');
@@ -180,17 +184,8 @@ function collectStars (player, stars) {
     score += 10;
     //updating score
     scoreText.text = 'Score: ' + score;
-    //for restart
-    if (score == 10){
-        invaders.callAll('kill');
-        winText.text = " You Won, \n Click to restart";
-        winText.visible = true;
-        winBG.visible = true;
-        overBG.visible = false;
-        overText.visible = false;
-        //kill all the invaders when winning
-        //the "click to restart"
-        game.input.onTap.addOnce(restart,this);
+    if (score == 30){
+        fireHome();
     }
 }
 
@@ -203,17 +198,28 @@ function hitinvader (player, invaders) {
         //When the player dies
         //player.kill();
         stars.callAll('kill');
-
+        home.kill();
         overText.text=" GAME OVER \n Click to restart";
         overText.visible = true;
         overBG.visible = true;
 
         //the "click to restart" handler
         if (overText.visible){
-            game.input.onTap.addOnce(restart,this);
+            game.input.onTap.addOnce(restartWin,this);
         }
 }
 
+function hitHome (player, home) {
+    home.kill();
+    winText.text = " You Won, \n Click to restart";
+    winText.visible = true;
+    winBG.visible = true;
+    overBG.visible = false;
+    overText.visible = false;
+    //kill all the invaders when winning
+    //the "click to restart"
+    game.input.onTap.addOnce(restartWin,this);
+}
 function resetStar (star, platforms) {
     //  Called if the star hit the platform (left)
     star.kill();
@@ -223,7 +229,9 @@ function resetInvader (invader, platforms) {
     //  Called if the invader hit the platform (left)
     invader.kill();
 }
-
+function resetHome (home, platforms){
+    home.kill();
+}
 //let the invader go functions
 function fireInvader(){
         if (game.time.now > invaderTime){
@@ -231,10 +239,10 @@ function fireInvader(){
         invader = invaders.getFirstExists(false);
         if (invader){
             //  And fire it
-            invader.reset(game.world.width+50, game.world.height-25);
+            invader.reset(game.world.width+50, game.world.height-5);
             invader.body.velocity.x = -400;
             //in case of firing too many at once
-            invaderTime = game.time.now + 1000;
+            invaderTime = game.time.now + 1100;
         }
     }
 }
@@ -246,7 +254,7 @@ function fireStar(){
 
         if (star){
             //  And fire it
-            star.reset(game.world.width+50, player.y+50);
+            star.reset(game.world.width+50, player.y+45);
             star.body.velocity.x = -400;
             //in case of firing too many at once
             starTime = game.time.now + 600;
@@ -255,18 +263,7 @@ function fireStar(){
 }
 
 function fireHome(){
-        if (game.time.now > starTime){
-        //  Grab the first star we can from the pool
-        star = stars.getFirstExists(false);
-
-        if (home){
-            //  And fire it
-            home.reset(game.world.width+50, player.y+25);
-            home.body.velocity.x = -400;
-            //in case of firing too many at once
-            homeTime = game.time.now + 600;
-        }
-    }
+    home.body.velocity.x = -400;
 }
 
 function restart () {
@@ -278,7 +275,18 @@ function restart () {
     score = 0;
     scoreText.text = 'Score: ' + score;
     }
-
+function restartWin (){
+    //hide the restart text
+    overText.visible = false;
+    winText.visible = false;
+    overBG.visible = false;
+    winBG.visible = false;
+    score = 0;
+    scoreText.text = 'Score: ' + score;
+    home = game.add.sprite(game.world.width+50, game.world.height - 240, 'winHome');
+    home.scale.setTo(2,2);
+    game.physics.arcade.enable(home,Phaser.Physics.ARCADE);
+}
 function gamestart(){
     startBG.visible = false;
     startText.visible = false;
@@ -292,7 +300,7 @@ function update() {
         counterTime = game.time.now + 600;
     }
 
-    if (game.input.activePointer.isDown  && player.body.blocked.down && overBG.visible == false && startBG.visible == false && winBG.visible ==false){
+    if (game.input.activePointer.isDown  && player.body.blocked.down && overBG.visible == false && startBG.visible == false && winBG.visible ==false ){
         player.body.velocity.y = -500;
     }
     else if (game.input.activePointer.isDown  && startBG.visible == true){
@@ -305,7 +313,7 @@ function update() {
     }
 
     //  Scroll the background
-    gameBG1.tilePosition.x -= 2;
+    gameBG.tilePosition.x -= 2;
     //JP changed player running right always
     player.animations.play('right');
     
@@ -320,18 +328,21 @@ function update() {
     //  Checks to see if the player overlaps with invader, if he does call the hitinvader function
     game.physics.arcade.overlap(player, invaders, hitinvader, null, this);
 
+    game.physics.arcade.overlap(player, home, hitHome, null, this);
+
+    game.physics.arcade.overlap(home, platforms, hitHome, null, this);
     //if star hits platform, kill it
     game.physics.arcade.overlap(stars, platforms, resetStar, null, this);
 
     game.physics.arcade.overlap(invaders, platforms, resetInvader, null, this);
 
     if ((choice == 1)){
-        if (overBG.visible == false && startBG.visible == false && winBG.visible ==false){
+        if (overBG.visible == false && startBG.visible == false && winBG.visible ==false  && home.body.x >= game.world.width ){
             fireInvader();
         }
     }
     if ((choice == 2) || fireButton.isDown || firedButton.isDown){
-        if (overBG.visible == false && startBG.visible == false && winBG.visible ==false){
+        if (overBG.visible == false && startBG.visible == false && winBG.visible ==false  && home.body.x >= game.world.width ){
             fireStar();
         }
     }
