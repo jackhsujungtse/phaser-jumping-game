@@ -49,6 +49,7 @@ function preload() {
 
     //game.load.image('bullet', 'assets/bullet.png');
     game.load.image('ground', 'assets/platform.png');
+    game.load.audio('123', 'assets/123.mp3');
 }
 
 var player;
@@ -93,7 +94,8 @@ var startBG;
 var overBG;
 var winBG;
 var endScore = 0;
-//    restartText.anchor.setTo(0.5, 0.5); //remember to set anchor for some vars
+var music;
+
 function create() {
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -168,6 +170,9 @@ function create() {
     startText.anchor.setTo(-0.8, -2);
     startText.visible = true;
     
+    music = game.add.audio('123');
+    music.play();
+
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     //mouseclick = game.input.onTap.add(tapJump, this);
@@ -190,8 +195,8 @@ function create() {
     invaders.setAll('anchor.x', 0.5);
     invaders.setAll('anchor.y', 1);
     // player.setAll('checkWorldBounds', true);
-}
 
+}
 
 function collectStars (player, stars) {
     // Removes the star from the screen
@@ -200,12 +205,6 @@ function collectStars (player, stars) {
     score += 10;
     //updating score
     scoreText.text = 'Score: ' + score;
-    if (score >= 30){
-            endScore = Math.floor((Math.random() * 5)+1); 
-            if(endScore == 1){
-                fireHome();
-            }
-    }
 }
 
 function hitinvader (player, invaders) {
@@ -214,18 +213,18 @@ function hitinvader (player, invaders) {
     //  Add and update the score
     // score -= 1;
     scoreText.text = 'Score: ' + score;
-        //When the player dies
-        //player.kill();
-        stars.callAll('kill');
-        home.kill();
-        overText.text=" Restart";
-        overText.visible = true;
-        overBG.visible = true;
-
-        //the "click to restart" handler
-        if (overText.visible){
-            game.input.onTap.addOnce(restartWin,this);
-        }
+    //When the player dies
+    //player.kill();
+    stars.callAll('kill');
+    home.kill();
+    overText.text=" Restart";
+    overText.visible = true;
+    overBG.visible = true;
+    music.pause();
+    //the "click to restart" handler
+    if (overText.visible){
+        game.input.onTap.addOnce(restartWin,this);
+    }
 }
 
 function hitHome (player, home) {
@@ -302,6 +301,7 @@ function restartWin (){
     winBG.visible = false;
     score = 0;
     scoreText.text = 'Score: ' + score;
+    music.resume();
     home = game.add.sprite(game.world.width+50, game.world.height - 240, 'winHome');
     home.scale.setTo(2,2);
     game.physics.arcade.enable(home,Phaser.Physics.ARCADE);
@@ -317,6 +317,16 @@ function update() {
         choice = Math.floor((Math.random() * 3) + 1); 
         //things comes our every 0.5 sec
         counterTime = game.time.now + 600;
+    }
+
+    if (score >= 50){
+            endScore = Math.floor((Math.random() * 5)+1); 
+            if(endScore == 1){
+                fireHome();
+            }
+    }
+    else {
+        endScore = 0;
     }
 
     if (game.input.activePointer.isDown  && player.body.blocked.down && overBG.visible == false && startBG.visible == false && winBG.visible ==false ){
@@ -372,6 +382,7 @@ function update() {
         invaders.callAll('kill');
         stars.callAll('kill');
     }
+    
     //delaycounterText.text = 'Choice: ' + choice;
 }
 
