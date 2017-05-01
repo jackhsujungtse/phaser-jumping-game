@@ -170,9 +170,10 @@ function create() {
     startText.anchor.setTo(-0.8, -2);
     startText.visible = true;
     
+    // music = new Phaser.Sound(game, 'music', 1, true);
     music = game.add.audio('music');
+    music.loop = true;
     music.play();
-
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     //mouseclick = game.input.onTap.add(tapJump, this);
