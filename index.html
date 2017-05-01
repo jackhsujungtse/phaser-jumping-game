@@ -103,6 +103,11 @@ function create() {
     //  A simple background for our game
     //  The scrolling gameBG1 background
     gameBG = game.add.tileSprite(0, 0, 667, 345, 'gameBG');
+    
+    // music = new Phaser.Sound(game, 'music', 1, true);
+    music = game.add.audio('music');
+    music.loop = true;
+    music.play();
 
     //  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = game.add.group();
@@ -136,12 +141,6 @@ function create() {
     game.physics.arcade.enable(home,Phaser.Physics.ARCADE);
 
     //for start page
-    startBG = game.add.tileSprite(0,0, 667, 345, 'startBG');
-    startBG.anchor.setTo(0,0);
-    
-    startBG.visible = true;
-
-    //for start page
     overBG = game.add.tileSprite(0, 0, 800, 600, 'overBG');
     overBG.anchor.setTo(0, 0);
     overBG.visible = false;
@@ -150,6 +149,12 @@ function create() {
     winBG = game.add.tileSprite(0, 0, 800, 600, 'winBG');
     winBG.anchor.setTo(0, 0);
     winBG.visible = false;
+
+    //for start page
+    startBG = game.add.tileSprite(0,0, 667, 345, 'startBG');
+    startBG.anchor.setTo(0,0);
+    
+    startBG.visible = true;
 
     //  The text
     scoreText = game.add.text(16, 16, 'Score: 0', { font: '28px CubanoRegular', fill: '#ffd800' });
@@ -169,11 +174,6 @@ function create() {
     startText = game.add.text(game.world.centerX , game.world.centerY,'PLAY NOW', { font: '34px arconregular', fill: '#ffffff' });
     startText.anchor.setTo(-0.8, -2);
     startText.visible = true;
-    
-    // music = new Phaser.Sound(game, 'music', 1, true);
-    music = game.add.audio('music');
-    music.loop = true;
-    music.play();
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     //mouseclick = game.input.onTap.add(tapJump, this);
